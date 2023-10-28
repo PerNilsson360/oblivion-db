@@ -1,0 +1,9 @@
+{
+    "type" : "object",
+    "properties" : {
+        "a" : {"type": "null"},
+        "b" : {"type" : "boolean"},
+        "c" : {"type" : "number"},
+        "d" : {"type": "string"} 
+    }
+}
