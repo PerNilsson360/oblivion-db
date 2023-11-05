@@ -102,13 +102,14 @@ main (int argc, char* argv[])
         printHelp();
         return -1;
     }
-    
-    std::unique_ptr<const Value> schema(Json::parse(schemaFile));
-    std::unique_ptr<const Value> data(Json::parse("")); // empty means read from stdin
-    std::unique_ptr<const SchemaNode> schemaNode(parse(*schema));
-    std::cerr << "validate json: " << *data << std::endl;
-    bool result(false);
+
+    bool result(false);        
     try {
+        
+        std::unique_ptr<const Value> schema(Json::parse(schemaFile));
+        // empty string means read from stdin
+        std::unique_ptr<const Value> data(Json::parse(""));
+        std::unique_ptr<const SchemaNode> schemaNode(parse(*schema));
         result = schemaNode->validate(*data);
     } catch (const std::exception& e) {
         std::cerr << "jsch got exception: " << e.what();

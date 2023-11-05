@@ -1,6 +1,6 @@
 BUILT_SOURCES = JsonParser.hh JsonParser.cc JsonScanner.cc location.hh position.hh stack.hh
 CLEANFILES = JsonParser.hh JsonParser.cc JsonScanner.cc location.hh position.hh stack.hh JsonParser.output
-AM_CPPFLAGS = -g -I$(top_srcdir)/include
+AM_CPPFLAGS = --std=c++17 -g -I$(top_srcdir)/include
 AM_YFLAGS = -t -v -d -Wno-yacc
 AM_LFLAGS = -olex.yy.c
 lib_LIBRARIES = liboblivion.a

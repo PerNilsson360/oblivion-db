@@ -49,7 +49,7 @@ blank [ \t]
 "null"   return yy::JsonParser::make_NULL(loc);
 "true"   return yy::JsonParser::make_TRUE(loc);
 
-([0-9]+("."[0-9]+)?)|"."[0-9]+ {
+([+-]?[0-9]+("."[0-9]+)?)|"."[0-9]+ {
   errno = 0;
   double d = strtod(yytext, nullptr);
   if (errno == ERANGE) {

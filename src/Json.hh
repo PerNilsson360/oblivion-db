@@ -34,8 +34,13 @@ public:
     size_t getSize();
     Value& operator[](size_t i);
     const Value& operator[](size_t i) const;
+    bool contains(const std::string& key) const;
     Value& operator[](const std::string& key);
     const Value& operator[](const std::string& key) const;
+    /**
+     *  Returns an xpath identifying the json value.
+     */
+    std::string getPath() const;
     /**
      * Memory is owned by this container.
      */

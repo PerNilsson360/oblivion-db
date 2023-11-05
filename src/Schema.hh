@@ -1,11 +1,12 @@
 #ifndef _SCHEMA_HH_
 #define _SCHEMA_HH_
 
+#include <optional>
 #include "Json.hh"
 
 class SchemaNode {
 public:
-    SchemaNode* parse(const Value& val);
+    static SchemaNode* parse(const Value& val);
     virtual bool validate(const Value& val) const = 0;
 private:
 };
@@ -32,6 +33,11 @@ public:
     Number(const Value& val);
     bool validate(const Value& val) const override;    
 private:
+    std::optional<double> _minimum;
+    std::optional<bool> _exclusiveMinimum;
+    std::optional<double> _maximum;
+    std::optional<bool> _exclusiveMaximum;
+    std::optional<double> _mulitpleOf;
 };
 
 class String : public Atom {

@@ -118,6 +118,14 @@ Value::operator[](size_t i) const {
 
 }
 
+bool Value::contains(const std::string& key) const {
+    if (_type != Object) {
+        return false;
+    }
+    ObjectImpl::const_iterator i = _data.props->find(key);
+    return i != _data.props->end();
+}
+
 Value&
 Value::operator[](const std::string& key) {
     ensureType(Object);
@@ -128,6 +136,11 @@ const Value&
 Value::operator[](const std::string& key) const {
     ensureType(Object);
     return *(*_data.props)[key];
+}
+
+std::string
+Value::getPath() const {
+    return "Value::getPath() missing impl";
 }
 
 void

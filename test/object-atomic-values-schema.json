@@ -1,9 +1,23 @@
 {
     "type" : "object",
     "properties" : {
-        "a" : {"type": "null"},
-        "b" : {"type" : "boolean"},
-        "c" : {"type" : "number"},
-        "d" : {"type": "string"} 
+        "a" : {
+            "type": "null"
+        },
+        "b" : {
+            "type" : "boolean"
+        },
+        "c" : {
+            "type" : "number",
+            "minimum" : 0,
+            "maximum" : 100,
+            "multipleOf" : 10
+        },
+        "d" : {
+            "type" : "number"
+        },
+        "e" : {
+            "type": "string"
+        } 
     }
 }

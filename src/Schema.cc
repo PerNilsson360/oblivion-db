@@ -1,3 +1,4 @@
+#include <cmath>
 #include <sstream>
 #include <stdexcept>
 #include <iostream>
@@ -9,16 +10,31 @@ namespace {
     constexpr const char* NULL_STR = "null";
     constexpr const char* BOOLEAN = "boolean";
     constexpr const char* NUMBER = "number";
+    constexpr const char* MINIMUM = "minimum";
+    constexpr const char* MAXIMUM = "maximum";
+    constexpr const char* EXCLUSIVE_MINIMUM = "exclusiveMinimum";
+    constexpr const char* EXCLUSIVE_MAXIMUM = "exclusiveMaximum";
+    constexpr const char* MULTIPLEOF = "multipleOf";
     constexpr const char* STRING = "string";
     constexpr const char* OBJECT = "object";
-    constexpr const char* ARRAY = "array";
     constexpr const char* PROPERTIES = "properties";
+    constexpr const char* ARRAY = "array";
     constexpr const char* ITEMS = "items";
 }
 
 bool
 isStringEqual(const Value& val, const std::string& s) {
     return val.getType() == Value::String && val.getString() == s;
+}
+
+double
+getNumber(const Value& val) {
+    if (val.getType() != Value::Number) {
+        std::stringstream ss;
+        ss << "Schema::getNumber(): value is not a number path: " << val.getPath(); 
+        throw std::runtime_error(ss.str());
+    }
+    return val.getNumber();
 }
 
 void
@@ -34,12 +50,7 @@ const SchemaNode* parse(const Value& val) {
     if (val.getType() != Value::Object) {
         throw std::runtime_error("Json::Schema::parse top level must be an object");
     }
-    const SchemaNode* result = nullptr;
-    const Value& type = val[TYPE];
-    if (!isStringEqual(type, OBJECT)) {
-        throw std::runtime_error("Json::Schema::parse top level type must be object");
-    }
-    return new Object(val);
+    return SchemaNode::parse(val);
 }
 
 
@@ -52,6 +63,9 @@ SchemaNode::parse(const Value& val) {
         std::stringstream ss;
         ss << "SchemaNode::parse value must be an object type: " << t; 
         throw std::runtime_error(ss.str());
+    }
+    if (!val.contains(TYPE)) {
+        throw std::runtime_error("Json::Schema::parse missing type property");
     }
     const Value& type = val[TYPE];
     if (isStringEqual(type, NULL_STR)) {
@@ -91,11 +105,55 @@ Boolean::validate(const Value& val) const {
 }
 
 // Number
-Number::Number(const Value& val) {}
+Number::Number(const Value& val) {
+    // TODO check valid key set
+    if (val.contains(MINIMUM)) {
+        _minimum = getNumber(val[MINIMUM]);
+    }
+    if (val.contains(EXCLUSIVE_MINIMUM)) {
+        _exclusiveMinimum = getNumber(val[EXCLUSIVE_MINIMUM]);
+    }
+    if (_minimum.has_value() && _exclusiveMinimum.has_value()) {
+        throw std::runtime_error("Number::Number both minimum and exclusiveMinimum is set");
+    }
+    if (val.contains(MAXIMUM)) {
+        _maximum = getNumber(val[MAXIMUM]);
+    }
+    if (val.contains(EXCLUSIVE_MAXIMUM)) {
+        _exclusiveMaximum = getNumber(val[EXCLUSIVE_MAXIMUM]);
+    }
+    if (_maximum.has_value() && _exclusiveMaximum.has_value()) {
+        throw std::runtime_error("Number::Number both maximum and exclusiveMaxmum is set");
+    }
+    if (val.contains(MULTIPLEOF)) {
+        _mulitpleOf = getNumber(val[MULTIPLEOF]);
+    }
+}
 
 bool
 Number::validate(const Value& val) const {
-    return val.getType() == Value::Number;
+    if (val.getType() != Value::Number) {
+        return false;
+    }
+    double n = getNumber(val);
+    if (_minimum.has_value() && n < _minimum.value()) {
+        return false;
+    }
+    if (_exclusiveMinimum.has_value() && n <= _exclusiveMinimum.value()) {
+        return false;
+    }
+    if (_maximum.has_value() && n > _maximum.value()) {
+        return false;
+    }
+    if (_exclusiveMaximum.has_value() && n >= _exclusiveMaximum.value()) {
+        return false;
+    }
+    if (_mulitpleOf.has_value()) {
+        double m = std::fmod(n, _mulitpleOf.value());
+        // TODO FLT_EPSILON comparison
+        return m == 0;
+    }
+    return true;
 }
 
 // String
@@ -125,24 +183,36 @@ Object::validate(const Value& val) const {
             result &= i->second->validate(*prop.second);
             std::cerr << "result:"  << result << " name: " << i->first << std::endl;
 
+        } else {                // not present in model
+            result = false;
         }
     }
     return result;
 }
 
 // Array
-Array::Array(const Value& val) {
-    const Value& items = val[ITEMS];
-    ensureType(items, Value::Object);
-    const Value& type = items[TYPE];
-    _items = SchemaNode::parse(type);
+Array::Array(const Value& val) : _items(nullptr) {
+    if (val.contains(ITEMS)) {
+        const Value& items = val[ITEMS];
+        ensureType(items, Value::Object);
+        if (!items.contains(TYPE)) {
+            throw std::runtime_error("Array::Array missing type in items");
+        }
+        _items = SchemaNode::parse(items);
+    }
 }
 
 bool
 Array::validate(const Value& val) const {
     bool result(true);
-    for (const Value* v : val.getArray()) {
-        result &= _items->validate(*v);
+    if (_items != nullptr) {
+        if (val.getType() == Value::Array) {
+            for (const Value* v : val.getArray()) {
+                result &= _items->validate(*v);
+            }
+        } else {
+            result = false;
+        }
     }
     return result;
 }

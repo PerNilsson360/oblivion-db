@@ -461,7 +461,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 test_SOURCES = test.cc
 test_LDADD = $(top_srcdir)/src/liboblivion.a
-TESTS = $(check_PROGRAMS) test-object-atomic-values.sh
+TESTS = $(check_PROGRAMS) test-object-atomic-values.sh test-string-array.sh
 AM_CPPFLAGS = -g -I$(top_srcdir)/include -I$(top_srcdir)/src
 all: all-am
 
@@ -735,6 +735,13 @@ test.log: test$(EXEEXT)
 test-object-atomic-values.sh.log: test-object-atomic-values.sh
 	@p='test-object-atomic-values.sh'; \
 	b='test-object-atomic-values.sh'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+test-string-array.sh.log: test-string-array.sh
+	@p='test-string-array.sh'; \
+	b='test-string-array.sh'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
